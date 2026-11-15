@@ -2027,6 +2027,10 @@ int ResourceManager::initContextManager()
 {
     int ret = 0;
 
+#ifdef PAL_NATIVE_TOPOLOGY
+    isContextManagerEnabled = false;
+#endif
+
     PAL_VERBOSE(LOG_TAG," isContextManagerEnabled: %s", isContextManagerEnabled? "true":"false");
     if (isContextManagerEnabled) {
         ret = ctxMgr->Init();
