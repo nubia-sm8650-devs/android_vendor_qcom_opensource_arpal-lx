@@ -42,6 +42,9 @@ cc_library_shared {
     }) + select(soong_config_variable("qtiaudio", "pal_voip_sample_rate_calibration"), {
         true: ["-DPAL_VOIP_SAMPLE_RATE_CALIBRATION"],
         default: [],
+    }) + select(soong_config_variable("qtiaudio", "feature_native_topology"), {
+        "true": ["-DPAL_NATIVE_TOPOLOGY"],
+        default: [],
     }),
 
     cppflags: [

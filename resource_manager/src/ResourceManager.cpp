@@ -1524,6 +1524,30 @@ char* ResourceManager::getDeviceNameFromID(uint32_t id)
     return NULL;
 }
 
+#ifdef PAL_NATIVE_TOPOLOGY
+/*
+ * A native sound card has its own name and uses the configuration of the
+ * stock card whose name is in the alias property.
+ */
+static int nativeCardAlias(const char *name, char **alias)
+{
+    char card[PROPERTY_VALUE_MAX];
+    char value[PROPERTY_VALUE_MAX];
+
+    property_get("ro.vendor.audio.native_topology.card", card, "");
+    if (!card[0] || strcmp(card, name))
+        return 0;
+
+    property_get("ro.vendor.audio.native_topology.alias", value, "");
+    if (!value[0])
+        return -EINVAL;
+
+    *alias = strdup(value);
+
+    return *alias ? 0 : -ENOMEM;
+}
+#endif
+
 int ResourceManager::init_audio()
 {
     int retry = 0;
@@ -1556,6 +1580,23 @@ int ResourceManager::init_audio()
                 }
                 PAL_INFO(LOG_TAG, "mixer_open success. snd_card_num = %d, snd_card_name %s",
                 snd_hw_card, snd_card_name);
+
+#ifdef PAL_NATIVE_TOPOLOGY
+                char *alias = NULL;
+
+                status = nativeCardAlias(snd_card_name, &alias);
+                if (status) {
+                    PAL_ERR(LOG_TAG, "native card %s has no alias", snd_card_name);
+                    free(snd_card_name);
+                    mixer_close(tmp_mixer);
+                    goto exit;
+                }
+
+                if (alias) {
+                    free(snd_card_name);
+                    snd_card_name = alias;
+                }
+#endif
 
                 /* TODO: Needs to extend for new targets */
                 if (strstr(snd_card_name, "kona") ||
