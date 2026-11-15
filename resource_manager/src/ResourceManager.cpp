@@ -1593,6 +1593,8 @@ int ResourceManager::init_audio()
                 }
 
                 if (alias) {
+                    PAL_INFO(LOG_TAG, "native card %s uses the configuration of %s",
+                             snd_card_name, alias);
                     free(snd_card_name);
                     snd_card_name = alias;
                 }
@@ -2028,7 +2030,10 @@ int ResourceManager::initContextManager()
     int ret = 0;
 
 #ifdef PAL_NATIVE_TOPOLOGY
-    isContextManagerEnabled = false;
+    if (isContextManagerEnabled) {
+        PAL_INFO(LOG_TAG, "context manager off on a native sound card");
+        isContextManagerEnabled = false;
+    }
 #endif
 
     PAL_VERBOSE(LOG_TAG," isContextManagerEnabled: %s", isContextManagerEnabled? "true":"false");
